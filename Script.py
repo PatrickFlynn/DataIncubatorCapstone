@@ -5,16 +5,17 @@ Created on Sun Nov  1 12:15:20 2020
 @author: Patrick Flynn
 """
 import pandas as pd
+import numpy as np
 import geopandas as gp
 import matplotlib.pyplot as plt
 import shapely
 import requests
 from sqlalchemy import create_engine
 from sklearn.preprocessing import MultiLabelBinarizer
+import seaborn as sns
 import re
 import os
 import sqlite3
-
 
 
 yelpkey = 'cBtu43sa9qo4ITijqcYxBP5xpEyxMywLfUgDa1NSzbrbpd_gLlkEyVEc4_781I8v7jmehAxfEOKwyboFlHYfxEgiMVlr6Dg3vcEjl_wuMMXggc-tuSbEZuxFnBTWW3Yx'
@@ -59,13 +60,7 @@ for y in range (0, 50):
 gridpoints = gp.GeoDataFrame(gridpoints)
 gridpoints.rename(columns={0:'Geometry'}, inplace=True)
 gridpoints = gridpoints.set_geometry('Geometry')
-gridpoints = gp.sjoin(gridpoints, zip_codes)
-
-
-fig, ax = plt.subplots(1,1, figsize=(10,20))
-zip_codes.plot(ax=ax)   
-gridpoints.plot(ax=ax, color='red')
-plt.show()     
+gridpoints = gp.sjoin(gridpoints, zip_codes)   
 
 locations = pd.DataFrame()
 
@@ -142,4 +137,37 @@ location_stats.drop(location_stats.loc[location_stats['ZIP'] == ''].index,
 location_stats['ZIP'] = location_stats['ZIP'].astype(int)
 stats_mappable = pd.merge(zip_codes, location_stats, left_on='ZIP', right_on='ZIP', how='inner')
 
-stats_mappable.plot('count', legend=True)
+fig, ax = plt.subplots(1,1, figsize=(15,15))
+zip_codes.plot(ax=ax)
+plt.xlabel('Longitude')
+plt.ylabel('Latitude')
+plt.title('Las Vegas (and outlying areas) Zip Codes')
+plt.savefig('images/vegas_zipcodes.png', bbox_inches='tight')
+plt.show()
+
+fig, ax = plt.subplots(1,1, figsize=(15,15))
+zip_codes.plot(ax=ax)   
+gridpoints.plot(ax=ax, color='red', legend=True)
+plt.xlabel('Longitude')
+plt.ylabel('Latitude')
+plt.title('Las Vegas Zip Codes with Coordinate Centroids')
+plt.savefig('images/zip_centroids.png', bbox_inches='tight')
+plt.show()  
+
+fig, ax = plt.subplots(1,3, figsize=(15,5))
+stats_mappable.plot('count', ax=ax[0], cmap='Reds')
+ax[0].set_title('Number of Yelp Businesses by Zipcode')
+ax[0].set_xticklabels('')
+ax[0].set_yticklabels('')
+stats_mappable.plot('price', ax=ax[1], cmap='Greens')
+ax[1].set_title('Yelp Price by Zipcode')
+ax[1].set_xticklabels('')
+ax[1].set_yticklabels('')
+stats_mappable.plot('rating', ax=ax[2], cmap='Blues')
+ax[2].set_title('Yelp Rating by Zipcode')
+ax[2].set_xticklabels('')
+ax[2].set_yticklabels('')
+plt.savefig('images/choropleth_maps.png', bbox_inches='tight')
+plt.show()
+
+correlation = location_stats[['count', 'rating', 'price']].corr()
