@@ -31,6 +31,7 @@ Source: [Yelp API](https://www.yelp.com/developers/documentation/v3/get_started)
    - We also remove some zip codes that are essentially vast open desert
 2. We obtain the latitude/longitude boundaries (minimum, maximums) and we construct a fishnet grid comprised of coordinates centroid points. (see below image)=
 <img src="images/zip_centroids.png" alt="drawing" width="1080"/>
+
 3. We spatially join ALL of the centroids to the zip code shapefile and we remove any centroids that are not within the selected zip codes, resulting in over 1000 (1117 to be exact) coordinate pairs.
 4. We iterate through each centroid coordinate pair passing in the coordinate to the yelp API as a HTTP request, receiving back a dataset of 50 or less business for each centroid.
 5. We remove any duplicate business IDs that may have been retrieved in low density areas.
